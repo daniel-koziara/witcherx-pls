@@ -237,7 +237,7 @@ contract BuyAndBurnV2 is ReentrancyGuard {
     /** @notice get cap amount per buy and burn
      * @return cap amount
      */
-    function getWethBuyAndBurnCap() public view returns (uint256) {
+    function getWplsBuyAndBurnCap() public view returns (uint256) {
         return s_capPerSwap;
     }
 
