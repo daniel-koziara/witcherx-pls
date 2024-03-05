@@ -41,7 +41,6 @@ contract BuyAndBurnV2 is ReentrancyGuard {
 
     InitialLPCreated private s_initialLiquidityCreated;
 
-    address public WITCHERX_ADDRESS;
     IPulseXRouter public pulseXRouter;
     address public pulseXPair;
 
@@ -78,8 +77,12 @@ contract BuyAndBurnV2 is ReentrancyGuard {
 
         s_initialLiquidityCreated = InitialLPCreated.YES;
 
-
         IWITCHERX(s_witcherxAddress).mintLPTokens();
+
+
+        IWPLS(WPLS).approve(address(pulseXRouter), INITIAL_LP_WPLS);
+        IWITCHERX(s_witcherxAddress).approve(address(pulseXRouter), INITAL_LP_TOKENS);
+
         pulseXRouter.addLiquidityETH{value: INITIAL_LP_WPLS}(
             s_witcherxAddress,
             INITAL_LP_TOKENS,
@@ -103,11 +106,6 @@ contract BuyAndBurnV2 is ReentrancyGuard {
         require(msg.sender == s_ownerAddress, "InvalidCaller");
         require(ownerAddress != address(0), "InvalidAddress");
         s_ownerAddress = ownerAddress;
-    }
-
-    function setWitcherxAddress(address _witcherxAddress) external {
-        require(msg.sender == s_ownerAddress, "InvalidCaller");
-        WITCHERX_ADDRESS = _witcherxAddress;
     }
 
     /**
@@ -144,7 +142,7 @@ contract BuyAndBurnV2 is ReentrancyGuard {
 
     /** @notice burn all Witcher in BuyAndBurn address */
     function burnLPWitcher() public {
-        IWITCHERX(WITCHERX_ADDRESS).burnLPTokens();
+        IWITCHERX(s_witcherxAddress).burnLPTokens();
     }
 
     /** @notice buy and burn Witcher from pulsex pool */
@@ -170,7 +168,7 @@ contract BuyAndBurnV2 is ReentrancyGuard {
         TransferHelper.safeTransferETH(payable(msg.sender), incentiveFee);
     }
 
-    function setTitanContractAddress(address witcherxAddress) external {
+    function setWitcherContractAddress(address witcherxAddress) external {
         require(msg.sender == s_ownerAddress, "InvalidCaller");
         require(s_witcherxAddress == address(0), "CannotResetAddress");
         require(witcherxAddress != address(0), "InvalidAddress");
@@ -226,7 +224,7 @@ contract BuyAndBurnV2 is ReentrancyGuard {
      * @param account address
      */
     function getWitcherBalance(address account) public view returns (uint256) {
-        return IWITCHERX(WITCHERX_ADDRESS).balanceOf(account);
+        return IWITCHERX(s_witcherxAddress).balanceOf(account);
     }
 
     /** @notice get buy and burn current contract day
@@ -262,7 +260,7 @@ contract BuyAndBurnV2 is ReentrancyGuard {
      * @return return the actual total supply
      */
     function totalWitcherXLiquidSupply() public view returns (uint256) {
-        return IWITCHERX(WITCHERX_ADDRESS).totalSupply();
+        return IWITCHERX(s_witcherxAddress).totalSupply();
     }
 
     // ==================== BuyAndBurnV2 Getters =======================================
