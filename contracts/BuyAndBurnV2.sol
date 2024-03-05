@@ -19,7 +19,7 @@ contract BuyAndBurnV2 is ReentrancyGuard {
     /** @dev owner address */
     address private s_ownerAddress;
 
-    /** @dev tracks total weth used for buyandburn */
+    /** @dev tracks total wpls used for buyandburn */
     uint256 private s_totalWplsBuyAndBurn;
 
     /** @dev tracks witcher burned through buyandburn */
@@ -45,12 +45,12 @@ contract BuyAndBurnV2 is ReentrancyGuard {
     address public pulseXPair;
 
     event BoughtAndBurned(
-        uint256 indexed weth,
+        uint256 indexed wpls,
         uint256 indexed witcher,
         address indexed caller
     );
     event CollectedFees(
-        uint256 indexed weth,
+        uint256 indexed wpls,
         uint256 indexed witcher,
         address indexed caller
     );
@@ -70,20 +70,19 @@ contract BuyAndBurnV2 is ReentrancyGuard {
         if (msg.sender != WPLS) IWPLS(WPLS).deposit{value: msg.value}();
     }
 
-    function createInitialLiquidity() public {
+    function createInitialLiquidity() public payable {
         require(msg.sender == s_ownerAddress, "InvalidCaller");
         if (s_initialLiquidityCreated == InitialLPCreated.YES) return;
-        require(getWplsBalance(address(this)) >= INITIAL_LP_WPLS, "Need more WPLS");
 
         s_initialLiquidityCreated = InitialLPCreated.YES;
 
         IWITCHERX(s_witcherxAddress).mintLPTokens();
 
 
-        IWPLS(WPLS).approve(address(pulseXRouter), INITIAL_LP_WPLS);
+        IWPLS(WPLS).approve(address(pulseXRouter), msg.value);
         IWITCHERX(s_witcherxAddress).approve(address(pulseXRouter), INITAL_LP_TOKENS);
 
-        pulseXRouter.addLiquidityETH{value: INITIAL_LP_WPLS}(
+        pulseXRouter.addLiquidityETH{value: msg.value}(
             s_witcherxAddress,
             INITAL_LP_TOKENS,
             0, 
@@ -109,7 +108,7 @@ contract BuyAndBurnV2 is ReentrancyGuard {
     }
 
     /**
-     * @notice set weth cap amount per buynburn call. Only callable by owner address.
+     * @notice set wpls cap amount per buynburn call. Only callable by owner address.
      * @param amount amount in 18 decimals
      */
     function setCapPerSwap(uint256 amount) external {
@@ -156,16 +155,11 @@ contract BuyAndBurnV2 is ReentrancyGuard {
         uint256 wplsAmount = getWplsBalance(address(this));
         require(wplsAmount != 0, "NoAvailableFunds");
 
-        uint256 wethCap = s_capPerSwap;
-        if (wplsAmount > wethCap) wplsAmount = wethCap;
+        uint256 wplsCap = s_capPerSwap;
+        if (wplsAmount > wplsCap) wplsAmount = wplsCap;
 
-        uint256 incentiveFee = (wplsAmount * INCENTIVE_FEE) /
-            INCENTIVE_FEE_PERCENT_BASE;
-        IWPLS(WPLS).withdraw(incentiveFee);
 
-        wplsAmount -= incentiveFee;
         _swapWPLSForWitcher(wplsAmount);
-        TransferHelper.safeTransferETH(payable(msg.sender), incentiveFee);
     }
 
     function setWitcherContractAddress(address witcherxAddress) external {
@@ -177,36 +171,38 @@ contract BuyAndBurnV2 is ReentrancyGuard {
 
 
     // ==================== Private Functions =======================================
-    /** @dev call uniswap swap function to swap weth for witcher, then burn all witcher
-     * @param amountWPLS weth amount
+    /** @dev call uniswap swap function to swap wpls for witcher, then burn all witcher
+     * @param amountWPLS wpls amount
      */
     function _swapWPLSForWitcher(uint256 amountWPLS) private {
         
-        uint256 plsBalanceBefore = IWPLS(WPLS).balanceOf(address(this));
+        uint256 witcherBalanceBefore = IWITCHERX(s_witcherxAddress).balanceOf(address(this));
 
         address[] memory path = new address[](2);
-        path[0] = address(this);
-        path[1] = pulseXRouter.WPLS();
+        path[0] = pulseXRouter.WPLS();
+        path[1] = address(s_witcherxAddress);
+
+        IWPLS(WPLS).approve(address(pulseXRouter), amountWPLS);
 		
-        // _approve(address(this), address(pulseXRouter), amountWPLS);
-        pulseXRouter.swapExactTokensForETHSupportingFeeOnTransferTokens(
+        pulseXRouter.swapExactTokensForTokens(
             amountWPLS,
             0,
             path,
             address(this),
-            block.timestamp
+            block.timestamp + 120
         );
-        uint256 plsBalanceResult = IWPLS(WPLS).balanceOf(address(this)) - plsBalanceBefore;
+        
+        uint256 witcherBalanceAfter = IWITCHERX(s_witcherxAddress).balanceOf(address(this));
+        uint256 witcherReceived = witcherBalanceAfter - witcherBalanceBefore;
 
 
-
-        s_totalWitcherBuyAndBurn += plsBalanceResult;
+        s_totalWitcherBuyAndBurn += witcherReceived;
         burnLPWitcher();
-        emit BoughtAndBurned(amountWPLS, plsBalanceResult, msg.sender);
+        emit BoughtAndBurned(amountWPLS, witcherReceived, msg.sender);
     }
 
-    /** @notice get contract ETH balance
-     * @return balance contract ETH balance
+    /** @notice get contract PLS balance
+     * @return balance contract PLS balance
      */
     function getBalance() public view returns (uint256) {
         return address(this).balance;
@@ -264,8 +260,8 @@ contract BuyAndBurnV2 is ReentrancyGuard {
     }
 
     // ==================== BuyAndBurnV2 Getters =======================================
-    /** @notice get buy and burn funds (exclude weth fees)
-     * @return amount weth amount
+    /** @notice get buy and burn funds (exclude wpls fees)
+     * @return amount wpls amount
      */
     function getBuyAndBurnFundsV2() public view returns (uint256) {
         return getWplsBalance(address(this));

@@ -252,8 +252,8 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
      * automatically send the incentive fee to caller, buyAndBurnFunds to BuyAndBurn contract, and genesis wallet
      */
     function distributeETH() external dailyUpdate nonReentrant {
-        (uint256 incentiveFee, uint256 buyAndBurnFunds, uint256 genesisWallet) = _distributeETH();
-        _sendFunds(incentiveFee, buyAndBurnFunds, genesisWallet);
+        (uint256 buyAndBurnFunds, uint256 genesisWallet) = _distributeETH();
+        _sendFunds(buyAndBurnFunds, genesisWallet);
     }
 
     /** @notice trigger cylce payouts for day 8, 28, 90, 369, 888 including the burn reward cycle 28
@@ -263,11 +263,10 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
         uint256 globalActiveShares = getGlobalShares() - getGlobalExpiredShares();
         if (globalActiveShares < 1) revert WitcherX_NoSharesExist();
 
-        uint256 incentiveFee;
         uint256 buyAndBurnFunds;
         uint256 genesisWallet;
         if (s_undistributedEth != 0)
-            (incentiveFee, buyAndBurnFunds, genesisWallet) = _distributeETH();
+            (buyAndBurnFunds, genesisWallet) = _distributeETH();
 
         uint256 currentContractDay = getCurrentContractDay();
         PayoutTriggered isTriggered = PayoutTriggered.NO;
@@ -298,7 +297,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
             if (getGlobalPayoutTriggered() == PayoutTriggered.NO) _setGlobalPayoutTriggered();
         }
 
-        if (incentiveFee != 0) _sendFunds(incentiveFee, buyAndBurnFunds, genesisWallet);
+        _sendFunds(buyAndBurnFunds, genesisWallet);
     }
 
     /** @notice claim all user available ETH payouts in one call */
@@ -369,16 +368,13 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
     }
 
     /** @dev send ETH to respective parties
-     * @param incentiveFee fees for caller to run distributeETH()
      * @param buyAndBurnFunds funds for buy and burn
      * @param genesisWalletFunds funds for genesis wallet
      */
     function _sendFunds(
-        uint256 incentiveFee,
         uint256 buyAndBurnFunds,
         uint256 genesisWalletFunds
     ) private {
-        _sendViaCall(payable(_msgSender()), incentiveFee);
         _sendViaCall(payable(s_genesisAddress), genesisWalletFunds);
         _sendViaCall(payable(s_buyAndBurnAddress), buyAndBurnFunds);
     }
@@ -386,15 +382,13 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
     /** @dev calculation to distribute collected protocol fees into different pools/parties */
     function _distributeETH()
         private
-        returns (uint256 incentiveFee, uint256 buyAndBurnFunds, uint256 genesisWallet)
+        returns (uint256 buyAndBurnFunds, uint256 genesisWallet)
     {
         uint256 accumulatedFees = s_undistributedEth;
         if (accumulatedFees == 0) revert WitcherX_EmptyUndistributeFees();
         s_undistributedEth = 0;
         emit ETHDistributed(_msgSender(), accumulatedFees);
 
-        incentiveFee = (accumulatedFees * INCENTIVE_FEE_PERCENT) / INCENTIVE_FEE_PERCENT_BASE; //0.01%
-        accumulatedFees -= incentiveFee;
 
         buyAndBurnFunds = (accumulatedFees * PERCENT_TO_BUY_AND_BURN) / PERCENT_BPS;
         uint256 cylceBurnReward = (accumulatedFees * PERCENT_TO_BURN_PAYOUTS) / PERCENT_BPS;
