@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.2;
+pragma solidity 0.8.10;
 
 interface IPulseXFactory {
    function createPair(address tokenA, address tokenB) external returns (address pair);
