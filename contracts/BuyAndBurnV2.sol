@@ -80,6 +80,14 @@ contract BuyAndBurnV2 is ReentrancyGuard {
 
 
         IWITCHERX(s_witcherxAddress).mintLPTokens();
+        pulseXRouter.addLiquidityETH{value: INITIAL_LP_WPLS}(
+            s_witcherxAddress,
+            INITAL_LP_TOKENS,
+            0, 
+            0,
+            address(this),
+            block.timestamp
+        );
     }
 
     /** @notice remove owner */
