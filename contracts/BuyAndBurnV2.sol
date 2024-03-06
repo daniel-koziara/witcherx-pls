@@ -70,21 +70,23 @@ contract BuyAndBurnV2 is ReentrancyGuard {
         if (msg.sender != WPLS) IWPLS(WPLS).deposit{value: msg.value}();
     }
 
-    function createInitialLiquidity() public payable {
+    function createInitialLiquidity() public {
         require(msg.sender == s_ownerAddress, "InvalidCaller");
+        require(IWPLS(WPLS).balanceOf(address(this)) >= INITIAL_LP_WPLS, "Need more PLS");
+
         if (s_initialLiquidityCreated == InitialLPCreated.YES) return;
 
         s_initialLiquidityCreated = InitialLPCreated.YES;
 
         IWITCHERX(s_witcherxAddress).mintLPTokens();
 
+    
+        IWPLS(WPLS).approve(address(pulseXRouter), INITIAL_LP_WPLS);
+        IWITCHERX(s_witcherxAddress).approve(address(pulseXRouter), INITIAL_LP_TOKENS);
 
-        IWPLS(WPLS).approve(address(pulseXRouter), msg.value);
-        IWITCHERX(s_witcherxAddress).approve(address(pulseXRouter), INITAL_LP_TOKENS);
-
-        pulseXRouter.addLiquidityETH{value: msg.value}(
+        pulseXRouter.addLiquidityETH{value: INITIAL_LP_WPLS}(
             s_witcherxAddress,
-            INITAL_LP_TOKENS,
+            INITIAL_LP_TOKENS,
             0, 
             0,
             address(this),

@@ -101,7 +101,7 @@ abstract contract MintInfo {
         uint256 currentTRank,
         uint256 mintCost
     ) internal returns (uint256 mintable) {
-        if (numOfDays == 0 || numOfDays > MAX_MINT_LENGTH) revert WitcherX_InvalidMintLength();
+        if (numOfDays == 0 || numOfDays > MAX_MINT_LENGTH || MIN_MINT_LENGTH < numOfDays) revert WitcherX_InvalidMintLength();
         if (mintPower == 0 || mintPower > MAX_MINT_POWER_CAP) revert WitcherX_InvalidMintPower();
 
         //calculate mint reward up front with the provided params

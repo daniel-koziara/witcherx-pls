@@ -15,7 +15,7 @@ uint256 constant INITIAL_LP_WPLS = 100 ether;
 
 uint256 constant SECONDS_IN_DAY = 86400;
 
-uint256 constant INITAL_LP_TOKENS = 100_000_000_000 ether;
+uint256 constant INITIAL_LP_TOKENS = 100_000_000_000 ether;
 
 
 uint24 constant POOLFEE1PERCENT = 10000; //1% Fee

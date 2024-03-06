@@ -10,8 +10,8 @@ uint256 constant SCALING_FACTOR_1e11 = 1e11;
 uint256 constant SCALING_FACTOR_1e18 = 1e18;
 
 // ===================== WITCHERX ==========================================
-uint256 constant PERCENT_TO_BUY_AND_BURN = 62_00;
-uint256 constant PERCENT_TO_CYCLE_PAYOUTS = 28_00;
+uint256 constant PERCENT_TO_BUY_AND_BURN = 73_00;
+uint256 constant PERCENT_TO_CYCLE_PAYOUTS = 17_00;
 uint256 constant PERCENT_TO_BURN_PAYOUTS = 7_00;
 uint256 constant PERCENT_TO_GENESIS = 3_00;
 
@@ -33,8 +33,8 @@ uint256 constant EAA_END = 0;
 uint256 constant MAX_BONUS_DAY = 350;
 
 //Mint Cost Variables
-uint256 constant START_MAX_MINT_COST = 0.2 ether;
-uint256 constant CAPPED_MAX_MINT_COST = 1 ether;
+uint256 constant START_MAX_MINT_COST = 5_000_000 ether;
+uint256 constant CAPPED_MAX_MINT_COST = 50_000_000 ether;
 uint256 constant DAILY_MINT_COST_INCREASE_STEP = 100_08;
 
 //mintPower Bonus Variables
@@ -48,21 +48,22 @@ uint256 constant DAILY_SHARE_RATE_INCREASE_STEP = 100_03;
 uint256 constant CAPPED_MAX_RATE = 2_800 ether;
 
 //Cycle Variables
-uint256 constant DAY8 = 8;
+uint256 constant DAY1 = 1;
+uint256 constant DAY7 = 7;
+uint256 constant DAY14 = 14;
 uint256 constant DAY28 = 28;
-uint256 constant DAY90 = 90;
-uint256 constant DAY369 = 369;
-uint256 constant DAY888 = 888;
-uint256 constant CYCLE_8_PERCENT = 28_00;
-uint256 constant CYCLE_28_PERCENT = 28_00;
-uint256 constant CYCLE_90_PERCENT = 18_00;
-uint256 constant CYCLE_369_PERCENT = 18_00;
-uint256 constant CYCLE_888_PERCENT = 8_00;
+uint256 constant DAY56 = 56;
+uint256 constant CYCLE_1_PERCENT = 28_00;
+uint256 constant CYCLE_7_PERCENT = 28_00;
+uint256 constant CYCLE_14_PERCENT = 18_00;
+uint256 constant CYCLE_28_PERCENT = 18_00;
+uint256 constant CYCLE_56_PERCENT = 8_00;
 uint256 constant PERCENT_BPS = 100_00;
 
 // ===================== mintInfo ==========================================
 uint256 constant MAX_MINT_POWER_CAP = 100;
-uint256 constant MAX_MINT_LENGTH = 280;
+uint256 constant MAX_MINT_LENGTH = 88;
+uint256 constant MIN_MINT_LENGTH = 8;
 uint256 constant CLAIM_MINT_GRACE_PERIOD = 7;
 uint256 constant MAX_BATCH_MINT_COUNT = 100;
 uint256 constant MAX_MINT_PER_WALLET = 1000;

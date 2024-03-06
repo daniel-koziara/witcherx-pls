@@ -31,21 +31,21 @@ abstract contract GlobalInfo {
     mapping(uint256 => uint256) private s_cyclePayouts;
 
     /** @dev track payout index for each cycle day, increased by 1 when triggerPayouts() is called succesfully
-     *  eg. curent index is 2, s_cyclePayoutIndex[DAY8] = 2 */
+     *  eg. curent index is 2, s_cyclePayoutIndex[DAY1] = 2 */
     mapping(uint256 => uint256) private s_cyclePayoutIndex;
 
     /** @dev track payout info (day and payout per share) for each cycle day
      * eg. s_cyclePayoutIndex is 2,
-     *  s_CyclePayoutPerShare[DAY8][2].day = 8
-     * s_CyclePayoutPerShare[DAY8][2].payoutPerShare = 0.1
+     *  s_CyclePayoutPerShare[DAY1][2].day = 8
+     * s_CyclePayoutPerShare[DAY1][2].payoutPerShare = 0.1
      */
     mapping(uint256 => mapping(uint256 => CycleRewardPerShare)) private s_cyclePayoutPerShare;
 
     /** @dev track user last payout reward claim index for cycleIndex, burnCycleIndex and sharesIndex
      * so calculation would start from next index instead of the first index
-     * [address][DAY8].cycleIndex = 1
-     * [address][DAY8].burnCycleIndex = 1
-     * [address][DAY8].sharesIndex = 2
+     * [address][DAY1].cycleIndex = 1
+     * [address][DAY1].burnCycleIndex = 1
+     * [address][DAY1].sharesIndex = 2
      * cycleIndex is the last stop in s_cyclePayoutPerShare
      * sharesIndex is the last stop in s_addressIdToActiveShares
      */
@@ -53,8 +53,8 @@ abstract contract GlobalInfo {
         private s_addressCycleToLastClaimIndex;
 
     /** @dev track when is the next cycle payout day for each cycle day
-     * eg. s_nextCyclePayoutDay[DAY8] = 8
-     *     s_nextCyclePayoutDay[DAY28] = 28
+     * eg. s_nextCyclePayoutDay[DAY1] = 8
+     *     s_nextCyclePayoutDay[DAY7] = 28
      */
     mapping(uint256 => uint256) s_nextCyclePayoutDay;
 
@@ -96,11 +96,11 @@ abstract contract GlobalInfo {
         s_currentshareRate = uint72(START_SHARE_RATE);
         s_currentMintPowerBonus = uint32(START_MINTPOWER_INCREASE_BONUS);
         s_currentEAABonus = uint32(EAA_START);
-        s_nextCyclePayoutDay[DAY8] = DAY8;
+        s_nextCyclePayoutDay[DAY1] = DAY1;
+        s_nextCyclePayoutDay[DAY7] = DAY7;
+        s_nextCyclePayoutDay[DAY14] = DAY14;
         s_nextCyclePayoutDay[DAY28] = DAY28;
-        s_nextCyclePayoutDay[DAY90] = DAY90;
-        s_nextCyclePayoutDay[DAY369] = DAY369;
-        s_nextCyclePayoutDay[DAY888] = DAY888;
+        s_nextCyclePayoutDay[DAY56] = DAY56;
     }
 
     /** @dev calculate and update variables daily and reset triggers flag */
@@ -184,25 +184,25 @@ abstract contract GlobalInfo {
      */
     function _initFirstSharesCycleIndex(address user, uint256 isFirstShares) internal {
         if (isFirstShares == 1) {
-            if (s_cyclePayoutIndex[DAY8] != 0) {
-                s_addressCycleToLastClaimIndex[user][DAY8].cycleIndex = uint96(
-                    s_cyclePayoutIndex[DAY8] + 1
+            if (s_cyclePayoutIndex[DAY1] != 0) {
+                s_addressCycleToLastClaimIndex[user][DAY1].cycleIndex = uint96(
+                    s_cyclePayoutIndex[DAY1] + 1
+                );
+
+                s_addressCycleToLastClaimIndex[user][DAY7].cycleIndex = uint96(
+                    s_cyclePayoutIndex[DAY7] + 1
+                );
+
+                s_addressCycleToLastClaimIndex[user][DAY14].cycleIndex = uint96(
+                    s_cyclePayoutIndex[DAY14] + 1
                 );
 
                 s_addressCycleToLastClaimIndex[user][DAY28].cycleIndex = uint96(
                     s_cyclePayoutIndex[DAY28] + 1
                 );
 
-                s_addressCycleToLastClaimIndex[user][DAY90].cycleIndex = uint96(
-                    s_cyclePayoutIndex[DAY90] + 1
-                );
-
-                s_addressCycleToLastClaimIndex[user][DAY369].cycleIndex = uint96(
-                    s_cyclePayoutIndex[DAY369] + 1
-                );
-
-                s_addressCycleToLastClaimIndex[user][DAY888].cycleIndex = uint96(
-                    s_cyclePayoutIndex[DAY888] + 1
+                s_addressCycleToLastClaimIndex[user][DAY56].cycleIndex = uint96(
+                    s_cyclePayoutIndex[DAY56] + 1
                 );
             }
         }

@@ -104,6 +104,13 @@ function getMaxMintDays() pure returns (uint256) {
     return MAX_MINT_LENGTH;
 }
 
+/** @notice Return min mint length
+ * @return minMintLength min mint length
+ */
+function getMinMintDays() pure returns (uint256) {
+    return MIN_MINT_LENGTH;
+}
+
 /** @notice Return max mints per wallet
  * @return maxMintPerWallet max mints per wallet
  */

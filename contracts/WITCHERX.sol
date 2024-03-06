@@ -152,7 +152,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
         uint256 countPerInterval
     ) external payable nonReentrant dailyUpdate {
         if (dayInterval == 0) revert WitcherX_InvalidMintLadderInterval();
-        if (maxDay < minDay || minDay == 0 || maxDay > MAX_MINT_LENGTH)
+        if (maxDay < minDay || minDay == 0 || maxDay > MAX_MINT_LENGTH || MIN_MINT_LENGTH < minDay)
             revert WitcherX_InvalidMintLadderRange();
 
         uint256 count = getBatchMintLadderCount(minDay, maxDay, dayInterval, countPerInterval);
@@ -270,24 +270,24 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
 
         uint256 currentContractDay = getCurrentContractDay();
         PayoutTriggered isTriggered = PayoutTriggered.NO;
-        _triggerCyclePayout(DAY8, globalActiveShares, currentContractDay) == PayoutTriggered.YES &&
+        _triggerCyclePayout(DAY1, globalActiveShares, currentContractDay) == PayoutTriggered.YES &&
             isTriggered == PayoutTriggered.NO
             ? isTriggered = PayoutTriggered.YES
             : isTriggered;
-        _triggerCyclePayout(DAY28, globalActiveShares, currentContractDay) == PayoutTriggered.YES &&
+        _triggerCyclePayout(DAY7, globalActiveShares, currentContractDay) == PayoutTriggered.YES &&
             isTriggered == PayoutTriggered.NO
             ? isTriggered = PayoutTriggered.YES
             : isTriggered;
-        _triggerCyclePayout(DAY90, globalActiveShares, currentContractDay) == PayoutTriggered.YES &&
+        _triggerCyclePayout(DAY14, globalActiveShares, currentContractDay) == PayoutTriggered.YES &&
             isTriggered == PayoutTriggered.NO
             ? isTriggered = PayoutTriggered.YES
             : isTriggered;
-        _triggerCyclePayout(DAY369, globalActiveShares, currentContractDay) ==
+        _triggerCyclePayout(DAY28, globalActiveShares, currentContractDay) ==
             PayoutTriggered.YES &&
             isTriggered == PayoutTriggered.NO
             ? isTriggered = PayoutTriggered.YES
             : isTriggered;
-        _triggerCyclePayout(DAY888, globalActiveShares, currentContractDay) ==
+        _triggerCyclePayout(DAY56, globalActiveShares, currentContractDay) ==
             PayoutTriggered.YES &&
             isTriggered == PayoutTriggered.NO
             ? isTriggered = PayoutTriggered.YES
@@ -302,11 +302,11 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
 
     /** @notice claim all user available ETH payouts in one call */
     function claimUserAvailableETHPayouts() external dailyUpdate nonReentrant {
-        uint256 reward = _claimCyclePayout(DAY8, PayoutClaim.SHARES);
+        uint256 reward = _claimCyclePayout(DAY1, PayoutClaim.SHARES);
+        reward += _claimCyclePayout(DAY7, PayoutClaim.SHARES);
+        reward += _claimCyclePayout(DAY14, PayoutClaim.SHARES);
         reward += _claimCyclePayout(DAY28, PayoutClaim.SHARES);
-        reward += _claimCyclePayout(DAY90, PayoutClaim.SHARES);
-        reward += _claimCyclePayout(DAY369, PayoutClaim.SHARES);
-        reward += _claimCyclePayout(DAY888, PayoutClaim.SHARES);
+        reward += _claimCyclePayout(DAY56, PayoutClaim.SHARES);
 
         if (reward == 0) revert WitcherX_NoCycleRewardToClaim();
         _sendViaCall(payable(_msgSender()), reward);
@@ -315,7 +315,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
 
     /** @notice claim all user available burn rewards in one call */
     function claimUserAvailableETHBurnPool() external dailyUpdate nonReentrant {
-        uint256 reward = _claimCyclePayout(DAY28, PayoutClaim.BURN);
+        uint256 reward = _claimCyclePayout(DAY7, PayoutClaim.BURN);
         if (reward == 0) revert WitcherX_NoCycleRewardToClaim();
         _sendViaCall(payable(_msgSender()), reward);
         emit RewardClaimed(_msgSender(), reward);
@@ -403,16 +403,16 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
 
         //cycle payout
         if (cycleRewardPool != 0) {
-            uint256 cycle8Reward = (cycleRewardPool * CYCLE_8_PERCENT) / PERCENT_BPS;
-            uint256 cycle28Reward = (cycleRewardPool * CYCLE_28_PERCENT) / PERCENT_BPS;
-            uint256 cycle90Reward = (cycleRewardPool * CYCLE_90_PERCENT) / PERCENT_BPS;
-            uint256 cycle369Reward = (cycleRewardPool * CYCLE_369_PERCENT) / PERCENT_BPS;
-            _setCyclePayoutPool(DAY8, cycle8Reward);
-            _setCyclePayoutPool(DAY28, cycle28Reward);
-            _setCyclePayoutPool(DAY90, cycle90Reward);
-            _setCyclePayoutPool(DAY369, cycle369Reward);
+            uint256 cycle8Reward = (cycleRewardPool * CYCLE_1_PERCENT) / PERCENT_BPS;
+            uint256 cycle28Reward = (cycleRewardPool * CYCLE_7_PERCENT) / PERCENT_BPS;
+            uint256 cycle90Reward = (cycleRewardPool * CYCLE_14_PERCENT) / PERCENT_BPS;
+            uint256 cycle369Reward = (cycleRewardPool * CYCLE_28_PERCENT) / PERCENT_BPS;
+            _setCyclePayoutPool(DAY1, cycle8Reward);
+            _setCyclePayoutPool(DAY7, cycle28Reward);
+            _setCyclePayoutPool(DAY14, cycle90Reward);
+            _setCyclePayoutPool(DAY28, cycle369Reward);
             _setCyclePayoutPool(
-                DAY888,
+                DAY56,
                 cycleRewardPool - cycle8Reward - cycle28Reward - cycle90Reward - cycle369Reward
             );
         }
@@ -465,7 +465,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
         //calculate burn reward if cycle is 28
         uint256 totalCycleBurn = getCycleBurnTotal(cycleIndex);
         uint256 burnReward;
-        if (cycleNo == DAY28 && totalCycleBurn != 0) {
+        if (cycleNo == DAY7 && totalCycleBurn != 0) {
             burnReward = s_cycleBurnReward;
             if (burnReward != 0) {
                 s_cycleBurnReward = 0;
@@ -617,10 +617,10 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
         address rewardPaybackAddress,
         BurnSource source
     ) private {
-        uint256 index = getCurrentCycleIndex(DAY28) + 1;
+        uint256 index = getCurrentCycleIndex(DAY7) + 1;
         /** set to the latest cylceIndex + 1 for fresh wallet
          * same concept as _initFirstSharesCycleIndex, refer to its dev comment  */
-        if (getUserBurnTotal(user) == 0) _updateUserBurnCycleClaimIndex(user, DAY28, index);
+        if (getUserBurnTotal(user) == 0) _updateUserBurnCycleClaimIndex(user, DAY7, index);
         _updateBurnAmount(user, _msgSender(), amount, index, source);
 
         uint256 devFee;
@@ -723,7 +723,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
 
                 userClaimCycleIndex = i + 1;
             }
-        } else if (cycleNo == DAY28 && payoutClaim == PayoutClaim.BURN) {
+        } else if (cycleNo == DAY7 && payoutClaim == PayoutClaim.BURN) {
             userClaimBurnCycleIndex = getUserLastBurnClaimIndex(user, cycleNo);
             for (uint256 i = userClaimBurnCycleIndex; i <= cycleMaxIndex; i++) {
                 uint256 burnPayoutPerToken = getCycleBurnPayoutPerToken(i);
@@ -755,15 +755,15 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
      */
     function getUserETHClaimableTotal(address user) public view returns (uint256 reward) {
         uint256 _reward;
-        (_reward, , , ) = _calculateUserCycleReward(user, DAY8, PayoutClaim.SHARES);
+        (_reward, , , ) = _calculateUserCycleReward(user, DAY1, PayoutClaim.SHARES);
+        reward += _reward;
+        (_reward, , , ) = _calculateUserCycleReward(user, DAY7, PayoutClaim.SHARES);
+        reward += _reward;
+        (_reward, , , ) = _calculateUserCycleReward(user, DAY14, PayoutClaim.SHARES);
         reward += _reward;
         (_reward, , , ) = _calculateUserCycleReward(user, DAY28, PayoutClaim.SHARES);
         reward += _reward;
-        (_reward, , , ) = _calculateUserCycleReward(user, DAY90, PayoutClaim.SHARES);
-        reward += _reward;
-        (_reward, , , ) = _calculateUserCycleReward(user, DAY369, PayoutClaim.SHARES);
-        reward += _reward;
-        (_reward, , , ) = _calculateUserCycleReward(user, DAY888, PayoutClaim.SHARES);
+        (_reward, , , ) = _calculateUserCycleReward(user, DAY56, PayoutClaim.SHARES);
         reward += _reward;
     }
 
@@ -772,7 +772,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
      * @return reward burn reward
      */
     function getUserBurnPoolETHClaimableTotal(address user) public view returns (uint256 reward) {
-        (reward, , , ) = _calculateUserCycleReward(user, DAY28, PayoutClaim.BURN);
+        (reward, , , ) = _calculateUserCycleReward(user, DAY7, PayoutClaim.BURN);
     }
 
     /** @notice get total penalties from mint and stake
@@ -793,7 +793,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
      * @return percentage in 18 decimals
      */
     function getCurrentUserBurnCyclePercentage() public view returns (uint256) {
-        uint256 index = getCurrentCycleIndex(DAY28) + 1;
+        uint256 index = getCurrentCycleIndex(DAY7) + 1;
         uint256 cycleBurnTotal = getCycleBurnTotal(index);
         return
             cycleBurnTotal == 0
@@ -807,7 +807,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
      * @return burnTotal total witcher burned in curreny burn cycle
      */
     function getUserCycleBurnTotal(address user) public view returns (uint256) {
-        return _getUserCycleBurnTotal(user, getCurrentCycleIndex(DAY28) + 1);
+        return _getUserCycleBurnTotal(user, getCurrentCycleIndex(DAY7) + 1);
     }
 
     function isBurnPoolEnabled() public view returns (BurnPoolEnabled) {
@@ -883,7 +883,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
             _msgSender(),
             address(0),
             amount,
-            getCurrentCycleIndex(DAY28) + 1,
+            getCurrentCycleIndex(DAY7) + 1,
             BurnSource.LIQUID
         );
     }
@@ -935,7 +935,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
                 StakeAction.END_OWN,
                 getGlobalPayoutTriggered()
             ),
-            getCurrentCycleIndex(DAY28) + 1,
+            getCurrentCycleIndex(DAY7) + 1,
             BurnSource.STAKE
         );
     }
@@ -957,7 +957,7 @@ contract TESTX is ERC20, ReentrancyGuard, GlobalInfo, MintInfo, StakeInfo, BurnI
             _msgSender(),
             address(0),
             _claimMint(_msgSender(), id, MintAction.BURN),
-            getCurrentCycleIndex(DAY28) + 1,
+            getCurrentCycleIndex(DAY7) + 1,
             BurnSource.MINT
         );
     }
