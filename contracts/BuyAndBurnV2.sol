@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 pragma abicoder v2;
 
@@ -80,7 +80,7 @@ contract BuyAndBurnV2 is ReentrancyGuard {
 
         IWITCHERX(s_witcherxAddress).mintLPTokens();
 
-    
+
         IWPLS(WPLS).approve(address(pulseXRouter), INITIAL_LP_WPLS);
         IWITCHERX(s_witcherxAddress).approve(address(pulseXRouter), INITIAL_LP_TOKENS);
 
