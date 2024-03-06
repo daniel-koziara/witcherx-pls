@@ -12,15 +12,15 @@ abstract contract GlobalInfo {
     /** @dev track current contract day */
     uint256 private s_currentContractDay;
     /** @dev shareRate starts 800 ether and increases capped at 2800 ether, uint72 has enough size */
-    uint72 private s_currentshareRate;
+    uint256 private s_currentshareRate;
     /** @dev mintCost starts 0.2 ether increases and capped at 1 ether, uint64 has enough size */
-    uint64 private s_currentMintCost;
+    uint256 private s_currentMintCost;
     /** @dev mintableWitcher starts 8m ether decreases and capped at 800 ether, uint96 has enough size */
-    uint96 private s_currentMintableWitcher;
+    uint256 private s_currentMintableWitcher;
     /** @dev mintPowerBonus starts 350_000_000 and decreases capped at 35_000, uint32 has enough size */
-    uint32 private s_currentMintPowerBonus;
+    uint256 private s_currentMintPowerBonus;
     /** @dev EAABonus starts 10_000_000 and decreases to 0, uint32 has enough size */
-    uint32 private s_currentEAABonus;
+    uint256 private s_currentEAABonus;
 
     /** @dev track if any of the cycle day 8, 28, 90, 369, 888 has payout triggered succesfully
      * this is used in end stake where either the shares change should be tracked in current/next payout cycle
@@ -91,11 +91,11 @@ abstract contract GlobalInfo {
     constructor() {
         i_genesisTs = block.timestamp;
         s_currentContractDay = 1;
-        s_currentMintCost = uint64(START_MAX_MINT_COST);
-        s_currentMintableWitcher = uint96(START_MAX_MINTABLE_PER_DAY);
-        s_currentshareRate = uint72(START_SHARE_RATE);
-        s_currentMintPowerBonus = uint32(START_MINTPOWER_INCREASE_BONUS);
-        s_currentEAABonus = uint32(EAA_START);
+        s_currentMintCost = uint256(START_MAX_MINT_COST);
+        s_currentMintableWitcher = uint256(START_MAX_MINTABLE_PER_DAY);
+        s_currentshareRate = uint256(START_SHARE_RATE);
+        s_currentMintPowerBonus = uint256(START_MINTPOWER_INCREASE_BONUS);
+        s_currentEAABonus = uint256(EAA_START);
         s_nextCyclePayoutDay[DAY1] = DAY1;
         s_nextCyclePayoutDay[DAY7] = DAY7;
         s_nextCyclePayoutDay[DAY14] = DAY14;
@@ -166,11 +166,11 @@ abstract contract GlobalInfo {
                 );
             }
 
-            s_currentMintCost = uint64(newMintCost);
+            s_currentMintCost = uint256(newMintCost);
             s_currentshareRate = uint72(newShareRate);
-            s_currentMintableWitcher = uint96(newMintableWitcher);
-            s_currentMintPowerBonus = uint32(newMintPowerBonus);
-            s_currentEAABonus = uint32(newEAABonus);
+            s_currentMintableWitcher = uint256(newMintableWitcher);
+            s_currentMintPowerBonus = uint256(newMintPowerBonus);
+            s_currentEAABonus = uint256(newEAABonus);
             s_currentContractDay = currentBlockDay;
             s_isGlobalPayoutTriggered = PayoutTriggered.NO;
         }
